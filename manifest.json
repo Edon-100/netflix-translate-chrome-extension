@@ -15,7 +15,8 @@
 		"service_worker": "background.js"
 	},
   "host_permissions": [
-    "https://fanyi.youdao.com/"
+    "https://fanyi.youdao.com/",
+		"https://service-pnrys8g3-1254074572.bj.apigw.tencentcs.com/"
   ],
 	"commands": {
 		"run-translate": {

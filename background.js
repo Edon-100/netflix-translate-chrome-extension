@@ -1,6 +1,14 @@
 const translateBaseUrl =
   'https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i='
 
+const requestBaseUrl =
+  'https://service-pnrys8g3-1254074572.bj.apigw.tencentcs.com/release'
+
+const AppInfo = {
+  appkey: '3bc15f324114c0f3',
+  key: 'v5rQlNuFWiR5SrwW5ob5jl4SUbDhFDua'
+}
+
 initProcrss()
 
 function initProcrss() {
@@ -76,18 +84,20 @@ function translateSubtitleProcess() {
       tabs[0].id,
       { getSubtitle: 'getSubtitle' },
       function (response = {}) {
-        fetch(`${translateBaseUrl}${response.subtitleText}`, {
-          method: 'get',
-          mode: 'cors'
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const { translateResult } = data
-            const translateText = translateResult[0][0].tgt
+        searchWords(response.subtitleText).then(translateText => sendChineseToPage(translateText))
+        // sendChineseToPage(translateText)
+        // fetch(`${translateBaseUrl}${response.subtitleText}`, {
+        //   method: 'get',
+        //   mode: 'cors'
+        // })
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     const { translateResult } = data
+        //     const translateText = translateResult[0][0].tgt
 
-            sendChineseToPage(translateText)
-            console.log('result', translateResult, translateText)
-          })
+        //     sendChineseToPage(translateText)
+        //     console.log('result', translateResult, translateText)
+        //   })
       }
     )
   })
@@ -106,6 +116,31 @@ function getYoudaoTranslate(text) {
         resolve(translateText)
       })
   })
+}
+
+function getYoudaoTranslate2(text) {
+  return new Promise((resolve, reject) => {
+    fetch(`${translateBaseUrl}${text}`, {
+      method: 'get',
+      mode: 'cors'
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const { translateResult } = data
+        const translateText = translateResult[0][0].tgt
+        resolve(translateText)
+      })
+  })
+}
+
+function searchWords(text) {
+  return fetch(
+    `${requestBaseUrl}?text=${text}&appkey=${AppInfo.appkey}&key=${AppInfo.key}`,
+    {
+      method: 'get',
+      mode: 'cors'
+    }
+  ).then((response) => response.json()).then(data => data.content.translation[0])
 }
 
 function sendChineseToPage(text) {
