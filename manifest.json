@@ -1,0 +1,35 @@
+{
+	"name": "netflix-subtitle-translate-extension",
+	"action": {
+		"default_icon": {
+			"16": "icon.png",
+			"24": "icon.png",
+			"32": "icon.png"
+		}
+	},
+	"manifest_version": 3,
+	"version": "0.1",
+	"description": "Turns the page red when you click the icon",
+	"permissions": ["declarativeContent", "commands", "tabs"],
+	"background": {
+		"service_worker": "background.js"
+	},
+  "host_permissions": [
+    "https://fanyi.youdao.com/"
+  ],
+	"commands": {
+		"run-translate": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Run \"foo\" on the current page."
+		}
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://www.netflix.com/watch/*"],
+			"js": ["content-script.js"]
+		}
+	]
+}
