@@ -1,61 +1,56 @@
 console.log('content script running')
 
-// const translateBaseUrl =
-//   'https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i='
-
-function getPlayingSubtitle() {
-  const subtitleSpan = document.querySelector(
-    '.player-timedtext-text-container>span'
-  )
-  return subtitleSpan.innerText
-}
+const NETFLIX_SUBTITLE_WRAPPER_SELECTOR =
+  '.player-timedtext-text-container>span'
 
 function initProcess() {
-  generateDom()
-  connetBackground()
+  initExtensionListner()
 }
 
-function generateDom() {
-  // const div = document.createElement('div')
-  // div.id = 'scriptSender'
-  // div.innerText = 'send'
-  // div.style =
-  //   'width:100px;height:40px;position:absolute;bottom:40%;left:46%;font-size:20px;cursor:pointer'
-  // div.addEventListener('click', () => {
-  //   console.log('1')
-  // })
-  // document.body.append(div)
+/**
+ * @description 获取当前字幕
+ */
+function getPlayingSubtitle() {
+  let text = ''
+  const subtitleSpan = document.querySelectorAll(
+    NETFLIX_SUBTITLE_WRAPPER_SELECTOR
+  )
+  subtitleSpan.forEach((span) => {
+    text += span.innerText
+  })
+  return text
 }
 
-function connetBackground() {
+function initExtensionListner() {
   chrome.runtime.onMessage.addListener(function (
-    request,
+    { type, data },
     sender,
     sendResponse
   ) {
-    if (request.getSubtitle === 'getSubtitle') {
-      let text=''
-      const subtitleSpan = document.querySelectorAll(
-        '.player-timedtext-text-container>span'
-      )
-      subtitleSpan.forEach(span => {
-        text += span.innerText
-      })
-      console.log('current subtitle', text)
-      // fetch(`${translateBaseUrl}${subtitle}`)
-      sendResponse({ subtitleText: text })
-    } else if (request.type === 'translateText') {
-      console.log('get translateText', request)
-      generateChineseTranslate(request.text)
+    switch (type) {
+      case 'getSubtitle':
+        let text = getPlayingSubtitle()
+        sendResponse({ type: 'passSubtitleText', data: text })
+        break
+      case 'sendTranslateText':
+        generateChineseTranslate(data)
+        break
+      default:
+        break
     }
   })
 }
 
+/**
+ * @description 把翻译之后的字幕放到页面中
+ * @param {string} text 翻译成中文的字幕
+ */
 function generateChineseTranslate(text) {
   const span = document.createElement('span')
-  span.innerText = text
+  span.innerText = `T: ${text}`
   span.id = 'translateText'
-  span.style = 'position:absolute;bottom:36%;left:46%;font-size:20px;cursor:pointer'
+  span.style =
+    'position:absolute;bottom:36%;left:46%;font-size:20px;cursor:pointer;color:'
   document.body.append(span)
   span.addEventListener('click', () => {
     document.body.removeChild(span)

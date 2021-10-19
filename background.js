@@ -1,7 +1,4 @@
-const translateBaseUrl =
-  'https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i='
-
-const requestBaseUrl =
+const REQUEST_BASE_URL =
   'https://service-pnrys8g3-1254074572.bj.apigw.tencentcs.com/release'
 
 const AppInfo = {
@@ -13,9 +10,6 @@ initProcrss()
 
 function initProcrss() {
   initDeclarativeContent()
-  // setTimeout(() => {
-  //   initMessageConnection()
-  // }, 10000)
   initMessageListener()
   initShorcutListener()
 }
@@ -39,28 +33,12 @@ function initDeclarativeContent() {
   })
 }
 
-function initMessageConnection() {
-  console.log('initMessageConnection')
-  // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-  //   var port = chrome.tabs.connect(tabs[0].id, {name: 'test-connect'});
-  //   port.postMessage({question: '你是谁啊？'});
-  //   port.onMessage.addListener(function(msg) {
-  //     alert('收到消息：'+msg.answer);
-  //     if(msg.answer && msg.answer.startsWith('我是'))
-  //     {
-  //       port.postMessage({question: '哦，原来是你啊！'});
-  //     }
-  //   });
-  // });
-}
-
 function initMessageListener() {
   chrome.runtime.onMessage.addListener(function (
     request,
     sender,
     sendResponse
   ) {
-    // if (request.greeting === 'hello') sendResponse({ farewell: 'goodbye' })
     console.log('request sender', requesr, sender)
   })
 }
@@ -77,79 +55,53 @@ function initShorcutListener() {
   })
 }
 
+/**
+ * @description 接受到快捷键命令后，开始走翻译流程
+ */
 function translateSubtitleProcess() {
   console.log('run translate...')
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { getSubtitle: 'getSubtitle' },
-      function (response = {}) {
-        searchWords(response.subtitleText).then(translateText => sendChineseToPage(translateText))
-        // sendChineseToPage(translateText)
-        // fetch(`${translateBaseUrl}${response.subtitleText}`, {
-        //   method: 'get',
-        //   mode: 'cors'
-        // })
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     const { translateResult } = data
-        //     const translateText = translateResult[0][0].tgt
-
-        //     sendChineseToPage(translateText)
-        //     console.log('result', translateResult, translateText)
-        //   })
-      }
+  sendMessageToPage({ type: 'getSubtitle' }, (response) => {
+    requestTranslate(response.data).then((translateText) =>
+      sendMessageToPage({
+        type: 'sendTranslateText',
+        data: translateText
+      })
     )
   })
 }
 
-function getYoudaoTranslate(text) {
-  return new Promise((resolve, reject) => {
-    fetch(`${translateBaseUrl}${response.subtitleText}`, {
-      method: 'get',
-      mode: 'cors'
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const { translateResult } = data
-        const translateText = translateResult[0][0].tgt
-        resolve(translateText)
-      })
+/**
+ * @description 发送消息到content-script
+ * @param {Object} message 
+ * @param {Function} cb 接受到返回的回调
+ */
+function sendMessageToPage(message, cb) {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      {
+        type: message.type,
+        data: message.data
+      },
+      cb
+    )
   })
 }
 
-function getYoudaoTranslate2(text) {
-  return new Promise((resolve, reject) => {
-    fetch(`${translateBaseUrl}${text}`, {
-      method: 'get',
-      mode: 'cors'
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const { translateResult } = data
-        const translateText = translateResult[0][0].tgt
-        resolve(translateText)
-      })
-  })
-}
-
-function searchWords(text) {
+/**
+ * 
+ * @param {string} text 需要翻译的字段
+ * @returns {Promise<string>} 翻译的结果
+ */
+function requestTranslate(text) {
   return fetch(
-    `${requestBaseUrl}?text=${text}&appkey=${AppInfo.appkey}&key=${AppInfo.key}`,
+    `${REQUEST_BASE_URL}?text=${text}&appkey=${AppInfo.appkey}&key=${AppInfo.key}`,
     {
       method: 'get',
       mode: 'cors'
     }
-  ).then((response) => response.json()).then(data => data.content.translation[0])
+  )
+    .then((response) => response.json())
+    .then((data) => data.content.translation[0])
 }
 
-function sendChineseToPage(text) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { type: 'translateText', text })
-  })
-}
-
-// fetch('https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=You%20have%20to%20listen%20to%20all%20of%20it', {
-// 	method: 'get',
-// 	mode: 'cors',
-// }).then(response => response.json());
