@@ -1,36 +1,73 @@
 const translateBaseUrl =
   'https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i='
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.action.disable()
+initProcrss()
 
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
-    var rule = {
-      conditions: [
-        new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { hostEquals: 'www.netflix.com/', schemes: ['https'] },
-          css: ['.player-timedtext-text-container']
-        })
-      ],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
-    }
-    chrome.declarativeContent.onPageChanged.addRules([rule])
+function initProcrss() {
+  initDeclarativeContent()
+  // setTimeout(() => {
+  //   initMessageConnection()
+  // }, 10000)
+  initMessageListener()
+  initShorcutListener()
+}
+
+function initDeclarativeContent() {
+  chrome.runtime.onInstalled.addListener(() => {
+    chrome.action.disable()
+
+    chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
+      var rule = {
+        conditions: [
+          new chrome.declarativeContent.PageStateMatcher({
+            pageUrl: { hostEquals: 'www.netflix.com/', schemes: ['https'] },
+            css: ['.player-timedtext-text-container']
+          })
+        ],
+        actions: [new chrome.declarativeContent.ShowPageAction()]
+      }
+      chrome.declarativeContent.onPageChanged.addRules([rule])
+    })
   })
-})
+}
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.greeting === 'hello') sendResponse({ farewell: 'goodbye' })
-})
+function initMessageConnection() {
+  console.log('initMessageConnection')
+  // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+  //   var port = chrome.tabs.connect(tabs[0].id, {name: 'test-connect'});
+  //   port.postMessage({question: '你是谁啊？'});
+  //   port.onMessage.addListener(function(msg) {
+  //     alert('收到消息：'+msg.answer);
+  //     if(msg.answer && msg.answer.startsWith('我是'))
+  //     {
+  //       port.postMessage({question: '哦，原来是你啊！'});
+  //     }
+  //   });
+  // });
+}
 
-chrome.commands.onCommand.addListener((command) => {
-  switch (command) {
-    case 'run-translate':
-      translateSubtitleProcess()
-      break
-    default:
-      break
-  }
-})
+function initMessageListener() {
+  chrome.runtime.onMessage.addListener(function (
+    request,
+    sender,
+    sendResponse
+  ) {
+    // if (request.greeting === 'hello') sendResponse({ farewell: 'goodbye' })
+    console.log('request sender', requesr, sender)
+  })
+}
+
+function initShorcutListener() {
+  chrome.commands.onCommand.addListener((command) => {
+    switch (command) {
+      case 'run-translate':
+        translateSubtitleProcess()
+        break
+      default:
+        break
+    }
+  })
+}
 
 function translateSubtitleProcess() {
   console.log('run translate...')
@@ -46,18 +83,34 @@ function translateSubtitleProcess() {
           .then((response) => response.json())
           .then((data) => {
             const { translateResult } = data
-						const translateText = translateResult[0][0].tgt;
+            const translateText = translateResult[0][0].tgt
 
-						chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-							chrome.tabs.sendMessage(tabs[0].id, {type: 'translateText', text: translateText}, function(response) {
-								console.log(response);
-							});
-						});
-
-						// console.log('result', translateResult[0][0].tgt)
+            sendChineseToPage(translateText)
+            console.log('result', translateResult, translateText)
           })
       }
     )
+  })
+}
+
+function getYoudaoTranslate(text) {
+  return new Promise((resolve, reject) => {
+    fetch(`${translateBaseUrl}${response.subtitleText}`, {
+      method: 'get',
+      mode: 'cors'
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const { translateResult } = data
+        const translateText = translateResult[0][0].tgt
+        resolve(translateText)
+      })
+  })
+}
+
+function sendChineseToPage(text) {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'translateText', text })
   })
 }
 

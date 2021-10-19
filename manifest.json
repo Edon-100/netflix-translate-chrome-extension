@@ -20,10 +20,10 @@
 	"commands": {
 		"run-translate": {
       "suggested_key": {
-        "default": "Ctrl+Shift+U",
-        "mac": "Command+Shift+U"
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
       },
-      "description": "Run \"foo\" on the current page."
+      "description": "translate subtitle"
 		}
 	},
 	"content_scripts": [
