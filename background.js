@@ -6,13 +6,7 @@ const AppInfo = {
   key: 'v5rQlNuFWiR5SrwW5ob5jl4SUbDhFDua'
 }
 
-initProcrss()
-
-function initProcrss() {
-  initDeclarativeContent()
-  initMessageListener()
-  initShorcutListener()
-}
+let subtitleBackup = []
 
 function initDeclarativeContent() {
   chrome.runtime.onInstalled.addListener(() => {
@@ -26,7 +20,7 @@ function initDeclarativeContent() {
             css: ['.player-timedtext-text-container']
           })
         ],
-        actions: [new chrome.declarativeContent.ShowPageAction()]
+        actions: [new chrome.declarativeContent.ShowAction()]
       }
       chrome.declarativeContent.onPageChanged.addRules([rule])
     })
@@ -61,6 +55,7 @@ function initShorcutListener() {
 function translateSubtitleProcess() {
   console.log('run translate...')
   sendMessageToPage({ type: 'getSubtitle' }, (response) => {
+    saveOriginalSubtitle(response.data)
     requestTranslate(response.data).then((translateText) =>
       sendMessageToPage({
         type: 'sendTranslateText',
@@ -72,7 +67,7 @@ function translateSubtitleProcess() {
 
 /**
  * @description 发送消息到content-script
- * @param {Object} message 
+ * @param {Object} message
  * @param {Function} cb 接受到返回的回调
  */
 function sendMessageToPage(message, cb) {
@@ -89,7 +84,7 @@ function sendMessageToPage(message, cb) {
 }
 
 /**
- * 
+ *
  * @param {string} text 需要翻译的字段
  * @returns {Promise<string>} 翻译的结果
  */
@@ -105,3 +100,31 @@ function requestTranslate(text) {
     .then((data) => data.content.translation[0])
 }
 
+/**
+ * @description 把翻译前的字幕保存起来
+ * @param {string} text
+ */
+function saveOriginalSubtitle(text) {
+  /*
+    如果 subtitleBackup 没有值，说明还没从storage里面取值，就先去取值，然后备份到本地
+    之后如果有备份，那么就不用执行一次get查询了，直接操作备份数据，然后set值
+  */
+  if (!subtitleBackup.length) {
+    chrome.storage.local.get(['subtitle1'], function (result) {
+      subtitleBackup = result.subtitle1 || []
+      subtitleBackup.push(text)
+      chrome.storage.local.set({ subtitle1: subtitleBackup })
+    })
+  } else {
+    subtitleBackup.push(text)
+    chrome.storage.local.set({ subtitle1: subtitleBackup })
+  }
+}
+
+function initProcrss() {
+  // initDeclarativeContent() // 不知道为何加了这个就不能弹出popup
+  initMessageListener()
+  initShorcutListener()
+}
+
+initProcrss()

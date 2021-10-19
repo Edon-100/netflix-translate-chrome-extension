@@ -1,36 +1,47 @@
 {
 	"name": "netflix-subtitle-translate-extension",
+	"manifest_version": 3,
+	"version": "0.1",
+	"description": "Turns the page red when you click the icon",
 	"action": {
+		"default_title": "Default Title",
+		"default_popup": "popups/popup.html",
 		"default_icon": {
 			"16": "icon.png",
 			"24": "icon.png",
 			"32": "icon.png"
 		}
 	},
-	"manifest_version": 3,
-	"version": "0.1",
-	"description": "Turns the page red when you click the icon",
-	"permissions": ["declarativeContent", "commands", "tabs"],
+	"permissions": [
+		"declarativeContent",
+		"commands",
+		"tabs",
+		"storage"
+	],
 	"background": {
 		"service_worker": "background.js"
 	},
-  "host_permissions": [
-    "https://fanyi.youdao.com/",
+	"host_permissions": [
+		"https://fanyi.youdao.com/",
 		"https://service-pnrys8g3-1254074572.bj.apigw.tencentcs.com/"
-  ],
+	],
 	"commands": {
 		"run-translate": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
-      },
-      "description": "translate subtitle"
+			"suggested_key": {
+				"default": "Ctrl+Shift+U",
+				"mac": "Command+Shift+U"
+			},
+			"description": "translate subtitle"
 		}
 	},
 	"content_scripts": [
 		{
-			"matches": ["https://www.netflix.com/watch/*"],
-			"js": ["content-script.js"]
+			"matches": [
+				"https://www.netflix.com/watch/*"
+			],
+			"js": [
+				"content-script.js"
+			]
 		}
 	]
 }
