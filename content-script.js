@@ -50,13 +50,14 @@ function generateChineseTranslate(text) {
   span.innerText = `T: ${text}`
   span.id = 'translateText'
   span.style =
-    'position:absolute;bottom:36%;left:46%;font-size:20px;cursor:pointer;color:'
-  document.body.append(span)
+    'position:absolute;bottom:30%;left:46%;font-size:20px;cursor:pointer;color:'
+  const videoParent = document.querySelector('video').parentElement
+  videoParent.append(span)
   span.addEventListener('click', () => {
-    document.body.removeChild(span)
+    videoParent.removeChild(span)
   })
   setTimeout(() => {
-    document.body.removeChild(span)
+    videoParent.removeChild(span)
   }, 5000)
 }
 
