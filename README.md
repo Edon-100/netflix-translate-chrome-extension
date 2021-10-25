@@ -6,9 +6,9 @@
 选择英文字幕之后，遇到不懂的句子。
 cmd + shift + Y/U ，即会在视频中显示翻译的句子
 提高看英文字幕的效率
-![image](https://user-images.githubusercontent.com/29009955/138705664-fd257916-a531-40d4-a18b-8b700ff68cbf.png)
+![image](https://user-images.githubusercontent.com/29009955/138705874-923c3d9a-1c40-4eb1-93b2-15d0c3bb6b3c.png)
+
 
 
 并且在之后，可以选择导出txt复习之前查询过的句子。
-![Uploading image.png…]()
-
+![image](https://user-images.githubusercontent.com/29009955/138705664-fd257916-a531-40d4-a18b-8b700ff68cbf.png)
